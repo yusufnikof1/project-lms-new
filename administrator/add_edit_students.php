@@ -6,8 +6,14 @@ require '../koneksi.php';
 if (empty($_SESSION['EMAIL'])) {
     header("location:../login.php");
 }
+
+$majorsQuery = mysqli_query($con, "SELECT * FROM majors");
+$usersQuery = mysqli_query($con, "SELECT * FROM users");
+
 //jika button save di klik
 if (isset($_POST['save'])) {
+    $majors_id = $_POST['majors_id'];
+    $user_id = $_POST['user_id'];
     $gender = $_POST['gender'];
     $date_of_birth = $_POST['date_of_birth'];
     $place_of_birth = $_POST['place_of_birth'];
@@ -16,10 +22,10 @@ if (isset($_POST['save'])) {
 
     if ($photo['error'] == 0) {
         $fileName = uniqid() . "_" . basename($photo['name']);
-        $filePath = "../assets/adm-assets/uploads/" . $fileName;
+        $filePath = "../assets/adm-assets/uploads/students/" . $fileName;
         move_uploaded_file($photo['tmp_name'], $filePath);
 
-        $insert = mysqli_query($con, "INSERT INTO students (gender, date_of_birth, place_of_birth, photo, is_active) VALUES ('$gender','$date_of_birth','$place_of_birth','$photo','$is_active')");
+        $insert = mysqli_query($con, "INSERT INTO students (majors_id, user_id, gender, date_of_birth, place_of_birth, photo, is_active) VALUES ('$majors_id','$user_id','$gender','$date_of_birth','$place_of_birth','$fileName','$is_active')");
         if ($insert) {
             header("Location: students.php");
         }
@@ -34,6 +40,8 @@ if (isset($_GET['Edit'])) {
 }
 
 if (isset($_POST['edit'])) {
+    $majors_id = $_POST['majors_id'];
+    $user_id = $_POST['user_id'];
     $gender = $_POST['gender'];
     $date_of_birth = $_POST['date_of_birth'];
     $place_of_birth = $_POST['place_of_birth'];
@@ -43,12 +51,12 @@ if (isset($_POST['edit'])) {
     $fillQupdate = '';
     if ($photo['error'] == 0) {
         $fileName = uniqid() . "_" . basename($photo['name']);
-        $filePath = "../assets/adm-assets/uploads/" . $fileName;
+        $filePath = "../assets/adm-assets/uploads/students/" . $fileName;
         if (move_uploaded_file($photo['tmp_name'], $filePath)) {
             $checkPhoto = mysqli_query($con, "SELECT photo FROM students WHERE id = $id");
-            $oldPhoto = mysqli_fetch_assoc($checkFoto);
-            if ($oldPhoto && file_exists("../assets/adm-assets/uploads/" . $oldPhoto['photo'])) {
-                unlink("../assets/adm-assets/uploads/" . $oldPhoto['photo']);
+            $oldPhoto = mysqli_fetch_assoc($checkPhoto);
+            if ($oldPhoto && file_exists("../assets/adm-assets/uploads/students/" . $oldPhoto['photo'])) {
+                unlink("../assets/adm-assets/uploads/students/" . $oldPhoto['photo']);
             }
             $fillQupdate = "photo='$fileName',";
         } else {
@@ -56,7 +64,7 @@ if (isset($_POST['edit'])) {
         }
     }
 
-    $qUpdate = mysqli_query($con, "UPDATE students SET $fillQupdate gender='$gender', date_of_birth='$date_of_birth', place_of_birth='$place_of_birth',is_active = '$is_active' WHERE id = $id");
+    $qUpdate = mysqli_query($con, "UPDATE students SET $fillQupdate majors_id='$majors_id', user_id='$user_id', gender='$gender', date_of_birth='$date_of_birth',place_of_birth='$place_of_birth', photo='$fileName',is_active = '$is_active' WHERE id = $id");
     if ($qUpdate) {
         header("location: students.php");
     }
@@ -133,6 +141,36 @@ if (isset($_POST['edit'])) {
                             <h5 class="card-title">Create</h5>
                             <form action="" method="post" enctype='multipart/form-data'>
 
+                                <!-- Major Select Option -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-2">
+                                        <label for="majors_id">Major</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <select name="majors_id" id="majors_id" class="form-control">
+                                            <option value="" disabled selected>Select Major</option>
+                                            <?php while ($major = mysqli_fetch_assoc($majorsQuery)) { ?>
+                                                <option value="<?php echo $major['id']; ?>"><?php echo $major['name']; ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                </div> <!-- Major -->
+
+                                <!-- User Select Option -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-2">
+                                        <label for="user_id">User</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <select name="user_id" id="user_id" class="form-control">
+                                            <option value="" disabled selected>Select User</option>
+                                            <?php while ($user = mysqli_fetch_assoc($usersQuery)) { ?>
+                                                <option value="<?php echo $user['id']; ?>"><?php echo $user['name']; ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                </div> <!-- User -->
+
                                 <div class="row mb-3">
                                     <div class="col-sm-2">
                                         <label for="">Gender</label>
@@ -150,7 +188,7 @@ if (isset($_POST['edit'])) {
                                         <label for="">Date of Birth</label>
                                     </div>
                                     <div class="col-sm-10">
-                                        <input type="date" class="form-control" name="date_of_birth" placeholder="Choose your date of birth" required value="<?php echo isset($_GET['Edit']) ? $rowEdt['date_of_birth'] : ''; ?>" required>
+                                        <input type="date" class="form-control" name="date_of_birth" placeholder="Enter your date of birth" required value="<?php echo isset($_GET['Edit']) ? $rowEdt['date_of_birth'] : ''; ?>" required>
                                     </div>
                                 </div> <!-- Date of Birth -->
 
@@ -168,12 +206,12 @@ if (isset($_POST['edit'])) {
                                         <label for="">Photo</label>
                                     </div>
                                     <div class="col-sm-10">
-                                        <input type="file" class="form-control" name="photo" placeholder="Put your photo here" required>
+                                        <input type="file" class="form-control" name="photo" required>
                                     </div>
                                     <?php if (isset($_GET['Edit'])) {
                                     ?>
                                         <div class="mt-2">
-                                            <img width="190" src="../assets/adm-assets/uploads/<?php echo $rowEdt['photo'] ?>" alt="">
+                                            <img width="190" src="../assets/adm-assets/uploads/students/<?php echo $rowEdt['photo'] ?>" alt="">
                                         </div>
                                     <?php
                                     } ?>

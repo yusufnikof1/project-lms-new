@@ -3,6 +3,7 @@ session_start();
 require '../koneksi.php';
 
 $learning_moduls = mysqli_query($con, "SELECT * FROM learning_moduls");
+
 $rows = mysqli_fetch_all($learning_moduls, MYSQLI_ASSOC);
 // var_dump($rows);
 

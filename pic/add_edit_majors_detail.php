@@ -8,65 +8,34 @@ if (empty($_SESSION['EMAIL'])) {
 }
 
 $majorsQuery = mysqli_query($con, "SELECT * FROM majors");
-$usersQuery = mysqli_query($con, "SELECT * FROM users");
+$instructorsQuery = mysqli_query($con, "SELECT * FROM instructors");
+$usersQuery = mysqli_query($con, "SELECT * FROM users WHERE id = 4");
 
 //jika button save di klik
 if (isset($_POST['save'])) {
     $majors_id = $_POST['majors_id'];
-    $user_id = $_POST['user_id'];
-    $gender = $_POST['gender'];
-    $date_of_birth = $_POST['date_of_birth'];
-    $place_of_birth = $_POST['place_of_birth'];
-    $photo = $_FILES['photo'];
-    $is_active = $_POST['is_active'];
+    $instructor_id = $_POST['instructor_id'];
 
-    if ($photo['error'] == 0) {
-        $fileName = uniqid() . "_" . basename($photo['name']);
-        $filePath = "../assets/adm-assets/uploads/students/" . $fileName;
-        move_uploaded_file($photo['tmp_name'], $filePath);
-
-        $insert = mysqli_query($con, "INSERT INTO students (majors_id, user_id, gender, date_of_birth, place_of_birth, photo, is_active) VALUES ('$majors_id','$user_id','$gender','$date_of_birth','$place_of_birth','$fileName','$is_active')");
-        if ($insert) {
-            header("Location: students.php");
-        }
+    $insert = mysqli_query($con, "INSERT INTO majors_detail (majors_id, instructor_id) VALUES ('$majors_id','$instructor_id')");
+    if ($insert) {
+        header("Location: majors_detail.php");
     }
 }
 
 if (isset($_GET['Edit'])) {
     $id = $_GET['Edit'];
 
-    $qEdit = mysqli_query($con, "SELECT * FROM students WHERE id = $id");
+    $qEdit = mysqli_query($con, "SELECT * FROM majors_detail WHERE id = $id");
     $rowEdt = mysqli_fetch_assoc($qEdit);
 }
 
 if (isset($_POST['edit'])) {
     $majors_id = $_POST['majors_id'];
-    $user_id = $_POST['user_id'];
-    $gender = $_POST['gender'];
-    $date_of_birth = $_POST['date_of_birth'];
-    $place_of_birth = $_POST['place_of_birth'];
-    $photo = $_FILES['photo'];
-    $is_active = $_POST['is_active'];
+    $instructor_id = $_POST['instructor_id'];
 
-    $fillQupdate = '';
-    if ($photo['error'] == 0) {
-        $fileName = uniqid() . "_" . basename($photo['name']);
-        $filePath = "../assets/adm-assets/uploads/students/" . $fileName;
-        if (move_uploaded_file($photo['tmp_name'], $filePath)) {
-            $checkPhoto = mysqli_query($con, "SELECT photo FROM students WHERE id = $id");
-            $oldPhoto = mysqli_fetch_assoc($checkPhoto);
-            if ($oldPhoto && file_exists("../assets/adm-assets/uploads/students/" . $oldPhoto['photo'])) {
-                unlink("../assets/adm-assets/uploads/students/" . $oldPhoto['photo']);
-            }
-            $fillQupdate = "photo='$fileName',";
-        } else {
-            echo "EDIT FAILED";
-        }
-    }
-
-    $qUpdate = mysqli_query($con, "UPDATE students SET $fillQupdate majors_id='$majors_id', user_id='$user_id', gender='$gender', date_of_birth='$date_of_birth',place_of_birth='$place_of_birth', photo='$fileName',is_active = '$is_active' WHERE id = $id");
+    $qUpdate = mysqli_query($con, "UPDATE majors_detail SET majors_id='$majors_id', instructor_id='$instructor_id' WHERE id = $id");
     if ($qUpdate) {
-        header("location: students.php");
+        header("location: pic_dashboard.php");
     }
 }
 ?>
@@ -78,7 +47,7 @@ if (isset($_POST['edit'])) {
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Create Student</title>
+    <title>Add Instructor</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
@@ -113,21 +82,21 @@ if (isset($_POST['edit'])) {
 <body>
 
     <!-- ======= Header ======= -->
-    <?php include '../inc-administrator/navbar.php' ?>
+    <?php include '../inc-pic/navbar.php' ?>
 
     <!-- ======= Sidebar ======= -->
-    <?php include '../inc-administrator/sidebar.php' ?>
+    <?php include '../inc-pic/sidebar.php' ?>
     <!-- End Sidebar-->
 
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Create Student</h1>
+            <h1>Add Instructor</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="students.php">Dashboard</a></li>
-                    <li class="breadcrumb-item">Students</li>
-                    <li class="breadcrumb-item active">Create Student</li>
+                    <li class="breadcrumb-item"><a href="pic_dashboard.php">Dashboard</a></li>
+                    <li class="breadcrumb-item">Instructors</li>
+                    <li class="breadcrumb-item active">Add Instructor</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
@@ -159,75 +128,17 @@ if (isset($_POST['edit'])) {
                                 <!-- User Select Option -->
                                 <div class="row mb-3">
                                     <div class="col-sm-2">
-                                        <label for="user_id">User</label>
+                                        <label for="instructor_id">Name of Instructor</label>
                                     </div>
                                     <div class="col-sm-10">
-                                        <select name="user_id" id="user_id" class="form-control">
-                                            <option value="" disabled selected>Select User</option>
-                                            <?php while ($user = mysqli_fetch_assoc($usersQuery)) { ?>
-                                                <option value="<?php echo $user['id']; ?>"><?php echo $user['name']; ?></option>
+                                        <select name="instructor_id" id="instructor_id" class="form-control">
+                                            <option value="" disabled selected>Select Instructor</option>
+                                            <?php while ($instructor = mysqli_fetch_assoc($instructorsQuery) and $user = mysqli_fetch_assoc($usersQuery)) { ?>
+                                                <option value="<?php echo $instructor['id']; ?>"><?php echo $user['name']; ?></option>
                                             <?php } ?>
                                         </select>
                                     </div>
-                                </div> <!-- User -->
-
-                                <div class="row mb-3">
-                                    <div class="col-sm-2">
-                                        <label for="">Gender</label>
-                                    </div>
-                                    <div class="col-sm-10">
-                                        <select name="gender" id="" class="form-control">
-                                            <option value="1" selected>Laki-laki</option>
-                                            <option value="0">Perempuan</option>
-                                        </select>
-                                    </div>
-                                </div> <!-- Gender -->
-
-                                <div class="row mb-3">
-                                    <div class="col-sm-2">
-                                        <label for="">Date of Birth</label>
-                                    </div>
-                                    <div class="col-sm-10">
-                                        <input type="date" class="form-control" name="date_of_birth" placeholder="Enter your date of birth" required value="<?php echo isset($_GET['Edit']) ? $rowEdt['date_of_birth'] : ''; ?>" required>
-                                    </div>
-                                </div> <!-- Date of Birth -->
-
-                                <div class="row mb-3">
-                                    <div class="col-sm-2">
-                                        <label for="">Place of Birth</label>
-                                    </div>
-                                    <div class="col-sm-10">
-                                        <input type="text" class="form-control" name="place_of_birth" placeholder="Enter your place of birth" required value="<?php echo isset($_GET['Edit']) ? $rowEdt['place_of_birth'] : ''; ?>" required>
-                                    </div>
-                                </div> <!-- Place of Birth-->
-
-                                <div class="row mb-3">
-                                    <div class="col-sm-2">
-                                        <label for="">Photo</label>
-                                    </div>
-                                    <div class="col-sm-10">
-                                        <input type="file" class="form-control" name="photo" required>
-                                    </div>
-                                    <?php if (isset($_GET['Edit'])) {
-                                    ?>
-                                        <div class="mt-2">
-                                            <img width="190" src="../assets/adm-assets/uploads/students/<?php echo $rowEdt['photo'] ?>" alt="">
-                                        </div>
-                                    <?php
-                                    } ?>
-                                </div> <!-- Photo -->
-
-                                <div class="row mb-3">
-                                    <div class="col-sm-2">
-                                        <label for="">Status</label>
-                                    </div>
-                                    <div class="col-sm-10">
-                                        <select name="is_active" id="" class="form-control">
-                                            <option value="1" selected>Actived</option>
-                                            <option value="0">Not Actived</option>
-                                        </select>
-                                    </div>
-                                </div> <!-- Status -->
+                                </div> <!-- Instructor -->
 
                                 <div class="row mb-3">
                                     <div class="col-md-2 offset-md-2">

@@ -1,8 +1,24 @@
 <?php
 session_start();
-//middleware
-if (empty($_SESSION['EMAIL'])) {
-    header("location:../login.php");
+require '../koneksi.php';
+
+$majors_detail = mysqli_query($con, "SELECT majors_detail.*, majors.name as major_name, instructors.id as instructor_id 
+FROM majors_detail 
+INNER JOIN majors ON majors_detail.majors_id = majors.id 
+INNER JOIN instructors ON majors_detail.instructor_id = instructors.id");
+
+$rows = mysqli_fetch_all($majors_detail, MYSQLI_ASSOC);
+// var_dump($rows);
+
+if (isset($_GET['idDel'])) {
+    $id = $_GET['idDel'];
+
+    $delete = mysqli_query($con, "DELETE FROM majors_detail WHERE id = $id");
+    if ($delete) {
+        header("location: pic_dashboard.php");
+    } else {
+        echo "DELETE FAILED";
+    }
 }
 ?>
 
@@ -13,7 +29,7 @@ if (empty($_SESSION['EMAIL'])) {
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Dashboard Student</title>
+    <title>PIC</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
@@ -57,33 +73,48 @@ if (empty($_SESSION['EMAIL'])) {
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Dashboard</h1>
+            <h1>List of Instructor</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item active">Dashboard</li>
+                    <li class="breadcrumb-item"><a href="administrator_dashboard.php">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Instructors</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
 
         <section class="section">
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
 
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Example Card</h5>
-                            <p>This is an examle page with no contrnt. You can use it as a starter for your custom pages.</p>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="col-lg-6">
-
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Example Card</h5>
-                            <p>This is an examle page with no contrnt. You can use it as a starter for your custom pages.</p>
+                            <h5 class="card-title">Instructors</h5>
+                            <div class="table table-responsive">
+                                <a class="btn btn-primary mb-2 float-end" href="add_edit_majors_detail.php">ADD</a>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Major</th>
+                                        <th>Name</th>
+                                        <th>Action</th>
+                                    </tr>
+                                    <?php
+                                    $no = 1;
+                                    foreach ($rows as $row) {
+                                    ?>
+                                        <tr>
+                                            <td><?= $no++; ?></td>
+                                            <td><?= $row['major_name'] ?></td>
+                                            <td><?= $row['user_name'] ?></td>
+                                            <td>
+                                                <a class="btn btn-success btn-sm" href="add_edit_majors_detail.php?Edit=<?php echo $row['id'] ?>">Edit</a>
+                                                <a class="btn btn-danger btn-sm" href="majors_detail.php?idDel=<?php echo $row['id'] ?>">Delete</a>
+                                            </td>
+                                        </tr>
+                                    <?php
+                                    } ?>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
@@ -94,7 +125,7 @@ if (empty($_SESSION['EMAIL'])) {
     </main><!-- End #main -->
 
     <!-- ======= Footer ======= -->
-    <footer id="footer" class="footer">
+    <footer id="footer" class="footer fixed-bottom">
         <div class="credits">
             <!-- All the links in the footer should remain intact. -->
             <!-- You can delete the links only if you purchased the pro version. -->
@@ -105,6 +136,10 @@ if (empty($_SESSION['EMAIL'])) {
     </footer><!-- End Footer -->
 
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+    <script
+        src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+        crossorigin="anonymous"></script>
 
     <!-- Vendor JS Files -->
     <script src="../assets/adm-assets/vendor/apexcharts/apexcharts.min.js"></script>

@@ -13,9 +13,9 @@
 
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="learning_moduls.php">
+            <a class="nav-link collapsed" href="majors_detail.php">
                 <i class="bi bi-person"></i>
-                <span>Module</span>
+                <span>Instructors</span>
             </a>
         </li>
 

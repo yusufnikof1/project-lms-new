@@ -2,7 +2,9 @@
 session_start();
 require '../koneksi.php';
 
-$students = mysqli_query($con, "SELECT * FROM students");
+$students = mysqli_query($con, "SELECT students.*, majors.name as major_name, users.name as user_name FROM students INNER JOIN majors ON students.majors_id = majors.id INNER JOIN users ON students.user_id = users.id");
+
+
 $rows = mysqli_fetch_all($students, MYSQLI_ASSOC);
 // var_dump($rows);
 
@@ -60,19 +62,19 @@ if (isset($_GET['idDel'])) {
 <body>
 
     <!-- ======= Header ======= -->
-    <?php include '../inc-admin-general/navbar.php' ?>
+    <?php include '../inc-administrator/navbar.php' ?>
 
     <!-- ======= Sidebar ======= -->
-    <?php include '../inc-admin-general/sidebar.php' ?>
+    <?php include '../inc-administrator/sidebar.php' ?>
     <!-- End Sidebar-->
 
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>List of Student</h1>
+            <h1>List of Students</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="admin_dashboard.php">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="administrator_dashboard.php">Dashboard</a></li>
                     <li class="breadcrumb-item active">Students</li>
                 </ol>
             </nav>
@@ -90,6 +92,8 @@ if (isset($_GET['idDel'])) {
                                 <table class="table table-bordered">
                                     <tr>
                                         <th>No</th>
+                                        <th>Major</th>
+                                        <th>Name</th>
                                         <th>Gender</th>
                                         <th>Date of Birth</th>
                                         <th>Place of Birth</th>
@@ -103,10 +107,22 @@ if (isset($_GET['idDel'])) {
                                     ?>
                                         <tr>
                                             <td><?= $no++; ?></td>
-                                            <td><?= $row['gender']; ?></td>
+                                            <td><?= $row['major_name'] ?></td>
+                                            <td><?= $row['user_name'] ?></td>
+                                            <td><?php
+                                                switch ($row['gender']) {
+                                                    case '1':
+                                                        echo "Laki-Laki";
+                                                        break;
+                                                    default:
+                                                        echo "Perempuan";
+                                                        break;
+                                                }
+                                                ?>
+                                            </td>
                                             <td><?= $row['date_of_birth'] ?></td>
-                                            <td><?= $row['place_of_birth'] ?? ''; ?></td>
-                                            <td><?= $row['photo'] ?? ''; ?></td>
+                                            <td><?= $row['place_of_birth'] ?></td>
+                                            <td><img src="../assets/adm-assets/uploads/students/<?php echo $row['photo']; ?>" alt="Student Photo" width="100"></td>
                                             <td><?php
                                                 switch ($row['is_active']) {
                                                     case '1':

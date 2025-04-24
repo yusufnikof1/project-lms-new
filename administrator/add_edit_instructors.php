@@ -6,8 +6,14 @@ require '../koneksi.php';
 if (empty($_SESSION['EMAIL'])) {
     header("location:../login.php");
 }
+
+$majorsQuery = mysqli_query($con, "SELECT * FROM majors");
+$usersQuery = mysqli_query($con, "SELECT * FROM users");
+
 //jika button save di klik
 if (isset($_POST['save'])) {
+    $majors_id = $_POST['majors_id'];
+    $user_id = $_POST['user_id'];
     $title = $_POST['title'];
     $gender = $_POST['gender'];
     $address = $_POST['address'];
@@ -17,10 +23,10 @@ if (isset($_POST['save'])) {
 
     if ($photo['error'] == 0) {
         $fileName = uniqid() . "_" . basename($photo['name']);
-        $filePath = "../assets/adm-assets/uploads/" . $fileName;
+        $filePath = "../assets/adm-assets/uploads/instructors/" . $fileName;
         move_uploaded_file($photo['tmp_name'], $filePath);
 
-        $insert = mysqli_query($con, "INSERT INTO instructors (title, gender, address, phone, photo, is_active) VALUES ('$title', '$gender','$address','$phone','$photo','$is_active')");
+        $insert = mysqli_query($con, "INSERT INTO instructors (majors_id, user_id, title, gender, address, phone, photo, is_active) VALUES ('$majors_id','$user_id','$title', '$gender','$address','$phone','$fileName','$is_active')");
         if ($insert) {
             header("Location: instructors.php");
         }
@@ -35,6 +41,8 @@ if (isset($_GET['Edit'])) {
 }
 
 if (isset($_POST['edit'])) {
+    $majors_id = $_POST['majors_id'];
+    $user_id = $_POST['user_id'];
     $title = $_POST['title'];
     $gender = $_POST['gender'];
     $address = $_POST['address'];
@@ -45,12 +53,12 @@ if (isset($_POST['edit'])) {
     $fillQupdate = '';
     if ($photo['error'] == 0) {
         $fileName = uniqid() . "_" . basename($photo['name']);
-        $filePath = "../assets/adm-assets/uploads/" . $fileName;
+        $filePath = "../assets/adm-assets/uploads/instructors/" . $fileName;
         if (move_uploaded_file($photo['tmp_name'], $filePath)) {
             $checkPhoto = mysqli_query($con, "SELECT photo FROM instructors WHERE id = $id");
-            $oldPhoto = mysqli_fetch_assoc($checkFoto);
-            if ($oldPhoto && file_exists("../assets/adm-assets/uploads/" . $oldPhoto['photo'])) {
-                unlink("../assets/adm-assets/uploads/" . $oldPhoto['photo']);
+            $oldPhoto = mysqli_fetch_assoc($checkPhoto);
+            if ($oldPhoto && file_exists("../assets/adm-assets/uploads/instructors/" . $oldPhoto['photo'])) {
+                unlink("../assets/adm-assets/uploads/instructors/" . $oldPhoto['photo']);
             }
             $fillQupdate = "photo='$fileName',";
         } else {
@@ -58,7 +66,7 @@ if (isset($_POST['edit'])) {
         }
     }
 
-    $qUpdate = mysqli_query($con, "UPDATE instructors SET $fillQupdate title='$title', gender='$gender', address='$address', phone='$phone',photo='$photo',is_active = '$is_active' WHERE id = $id");
+    $qUpdate = mysqli_query($con, "UPDATE instructors SET $fillQupdate majors_id='$majors_id', user_id='$user_id', title='$title', gender='$gender', address='$address', phone='$phone',photo='$fileName',is_active = '$is_active' WHERE id = $id");
     if ($qUpdate) {
         header("location: instructors.php");
     }
@@ -72,7 +80,7 @@ if (isset($_POST['edit'])) {
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Create Student</title>
+    <title>Create Instructor</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
@@ -116,12 +124,12 @@ if (isset($_POST['edit'])) {
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Create Student</h1>
+            <h1>Create Instructor</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="students.php">Dashboard</a></li>
-                    <li class="breadcrumb-item">Students</li>
-                    <li class="breadcrumb-item active">Create Student</li>
+                    <li class="breadcrumb-item"><a href="instructors.php">Dashboard</a></li>
+                    <li class="breadcrumb-item">Instructors</li>
+                    <li class="breadcrumb-item active">Create Instructor</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
@@ -135,15 +143,42 @@ if (isset($_POST['edit'])) {
                             <h5 class="card-title">Create</h5>
                             <form action="" method="post" enctype='multipart/form-data'>
 
+                                <!-- Major Select Option -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-2">
+                                        <label for="majors_id">Major</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <select name="majors_id" id="majors_id" class="form-control">
+                                            <option value="" disabled selected>Select Major</option>
+                                            <?php while ($major = mysqli_fetch_assoc($majorsQuery)) { ?>
+                                                <option value="<?php echo $major['id']; ?>"><?php echo $major['name']; ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                </div> <!-- Major -->
+
+                                <!-- User Select Option -->
+                                <div class="row mb-3">
+                                    <div class="col-sm-2">
+                                        <label for="user_id">User</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <select name="user_id" id="user_id" class="form-control">
+                                            <option value="" disabled selected>Select User</option>
+                                            <?php while ($user = mysqli_fetch_assoc($usersQuery)) { ?>
+                                                <option value="<?php echo $user['id']; ?>"><?php echo $user['name']; ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                </div> <!-- User -->
+
                                 <div class="row mb-3">
                                     <div class="col-sm-2">
                                         <label for="">Title</label>
                                     </div>
                                     <div class="col-sm-10">
-                                        <select name="title" id="" class="form-control">
-                                            <option value="1" selected>Sarjana/D4</option>
-                                            <option value="0">SMA/SMK</option>
-                                        </select>
+                                        <input type="text" class="form-control" name="title" placeholder="Enter your title" required value="<?php echo isset($_GET['Edit']) ? $rowEdt['title'] : ''; ?>" required>
                                     </div>
                                 </div> <!-- Title -->
 
@@ -187,7 +222,7 @@ if (isset($_POST['edit'])) {
                                     <?php if (isset($_GET['Edit'])) {
                                     ?>
                                         <div class="mt-2">
-                                            <img width="190" src="../assets/adm-assets/uploads/<?php echo $rowEdt['photo'] ?>" alt="">
+                                            <img width="190" src="../assets/adm-assets/uploads/instructors/<?php echo $rowEdt['photo'] ?>" alt="">
                                         </div>
                                     <?php
                                     } ?>

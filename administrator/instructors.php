@@ -2,7 +2,9 @@
 session_start();
 require '../koneksi.php';
 
-$instructors = mysqli_query($con, "SELECT * FROM instructors");
+$instructors = mysqli_query($con, "SELECT instructors.*, majors.name as major_name, users.name as user_name FROM instructors INNER JOIN majors ON instructors.majors_id = majors.id INNER JOIN users ON instructors.user_id = users.id");
+
+
 $rows = mysqli_fetch_all($instructors, MYSQLI_ASSOC);
 // var_dump($rows);
 
@@ -90,9 +92,10 @@ if (isset($_GET['idDel'])) {
                                 <table class="table table-bordered">
                                     <tr>
                                         <th>No</th>
+                                        <th>Major</th>
+                                        <th>Name</th>
+                                        <th>Title</th>
                                         <th>Gender</th>
-                                        <th>Date of Birth</th>
-                                        <th>Place of Birth</th>
                                         <th>Photo</th>
                                         <th>Status</th>
                                         <th>Action</th>
@@ -103,10 +106,21 @@ if (isset($_GET['idDel'])) {
                                     ?>
                                         <tr>
                                             <td><?= $no++; ?></td>
-                                            <td><?= $row['gender']; ?></td>
-                                            <td><?= $row['date_of_birth'] ?></td>
-                                            <td><?= $row['place_of_birth'] ?? ''; ?></td>
-                                            <td><?= $row['photo'] ?? ''; ?></td>
+                                            <td><?= $row['major_name'] ?></td>
+                                            <td><?= $row['user_name'] ?></td>
+                                            <td><?= $row['title'] ?></td>
+                                            <td><?php
+                                                switch ($row['gender']) {
+                                                    case '1':
+                                                        echo "Laki-Laki";
+                                                        break;
+                                                    default:
+                                                        echo "Perempuan";
+                                                        break;
+                                                }
+                                                ?>
+                                            </td>
+                                            <td><img src="../assets/adm-assets/uploads/instructors/<?php echo $row['photo']; ?>" alt="Instructor Photo" width="100"></td>
                                             <td><?php
                                                 switch ($row['is_active']) {
                                                     case '1':
